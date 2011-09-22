@@ -103,7 +103,7 @@ __END__
                         server => 'HTTP::Server::Simple' );
 
     my $local_res    = $local_agent->get( '/' );
-    my $server_res   = $local_agent->get( '/' );
+    my $server_res   = $server_agent->get( '/' );
 
     ok $local_res->is_success,  'local GET / should succeed';
     ok $server_res->is_success, 'server GET / should succeed';

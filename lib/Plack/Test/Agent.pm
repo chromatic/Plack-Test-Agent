@@ -23,11 +23,24 @@ sub new
 sub get
 {
     my ($self, $uri) = @_;
-    my $req          = HTTP::Request->new( GET => $uri );
+    my $req          = HTTP::Request->new( GET => $self->normalize_uri($uri) );
     my $env          = $req->to_psgi;
     my $app          = $self->app;
+    my $res          = HTTP::Response->from_psgi( $app->( $env ) );
 
-    return HTTP::Response->from_psgi( $app->( $env ) );
+    $res->request( $req );
+    return $res;
+}
+
+sub normalize_uri
+{
+    my ($self, $uri) = @_;
+    my $normalized   = URI->new( $uri );
+
+    $normalized->scheme( 'http' )      unless $normalized->scheme;
+    $normalized->host(   'localhost' ) unless $normalized->host;
+
+    return $normalized;
 }
 
 1;

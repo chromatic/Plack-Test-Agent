@@ -88,3 +88,94 @@ sub normalize_uri
 }
 
 1;
+
+__END__
+
+=head2 SYNOPSIS
+
+    use Test::More;
+    use Plack::Test::Agent;
+
+    my $app          = sub { ... };
+    my $local_agent  = Plack::Test::Agent->new( app => $app );
+    my $server_agent = Plack::Test::Agent->new(
+                        app    => $app,
+                        server => 'HTTP::Server::Simple' );
+
+    my $local_res    = $local_agent->get( '/' );
+    my $server_res   = $local_agent->get( '/' );
+
+    ok $local_res->is_success,  'local GET / should succeed';
+    ok $server_res->is_success, 'server GET / should succeed';
+
+=head2 DESCRIPTION
+
+C<Plack::Test::Agent> is an OO interface to test PSGI applications. It can
+perform GET and POST requests against PSGI applications either in process or
+over HTTP through a L<Plack::Handler> compatible backend.
+
+B<NOTE:> This is an experimental module and its interface may change.
+
+=head2 CONSTRUCTION
+
+The C<new> constructor creates an instance of C<Plack::Test::Agent>. This
+constructor takes one mandatory named argument and several optional arguments.
+
+=over 4
+
+=item * C<app> is the mandatory argument. You must provide a PSGI application
+to test.
+
+=item * C<server> is an optional argument. When provided, C<Plack::Test::Agent>
+will attempt to start a PSGI handler and will communicate via HTTP to the
+application running through the handler. See L<Plack::Loader> for details on
+selecting the appropriate server.
+
+=item * C<host> is an optional argument representing the name or IP address for
+the server to use. The default is C<localhost>.
+
+=item * C<port> is an optional argument representing the TCP port to for the
+server to use. If not provided, the service will run on a randomly selected
+available port outside of the IANA reserved range. (See L<Test::TCP> for
+details on the selection of the port number.)
+
+=item * C<ua> is an optional argument of something which conforms to the
+L<LWP::UserAgent> interface such that it provides a C<request> method which
+takes an L<HTTP::Request> object and returns an L<HTTP::Response> object. The
+default is an instance of C<LWP::UserAgent>.
+
+=back
+
+=head2 METHODS
+
+This class provides several useful methods:
+
+=head3 C<get>
+
+This method takes a URI and makes a C<GET> request against the PSGI application
+with that URI. It returns an L<HTTP::Response> object representing the results
+of that request.
+
+=head3 C<post>
+
+This method takes a URI and makes a C<POST> request against the PSGI
+application with that URI. It returns an L<HTTP::Response> object representing
+the results of that request. As an optional second parameter, pass an array
+reference of key/value pairs for the form content:
+
+    $agent->post( '/edit_user',
+        [
+            shoe_size => '10.5',
+            eye_color => 'blue green',
+            status    => 'twin',
+        ]);
+
+=head3 C<execute_request>
+
+This method takes an L<HTTP::Request>, performs it against the bound app, and
+returns an L<HTTP::Response>. This allows you to craft your own requests
+directly.
+
+=head2 CREDITS
+
+Thanks to Zbigniew E<0x141>ukasiak and Tatsuhiko Miyagawa for suggestions.

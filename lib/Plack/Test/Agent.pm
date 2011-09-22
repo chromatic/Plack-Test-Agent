@@ -48,31 +48,30 @@ sub start_server
     $self->server( $server );
 }
 
-sub execute_req
+sub execute_request
 {
     my ($self, $req) = @_;
 
-    return $self->ua->request( $req ) if $self->server;
-    return HTTP::Response->from_psgi( $self->app->( $req->to_psgi ) );
+    my $res = $self->server
+            ? $self->ua->request( $req )
+            : HTTP::Response->from_psgi( $self->app->( $req->to_psgi ) );
+
+    $res->request( $req );
+    return $res;
 }
 
 sub get
 {
     my ($self, $uri) = @_;
     my $req          = GET $self->normalize_uri($uri);
-    my $res          = $self->execute_req( $req );
-
-    $res->request( $req );
-    return $res;
+    return $self->execute_request( $req );
 }
 
 sub post
 {
     my ($self, $uri, @args) = @_;
     my $req                 = POST $self->normalize_uri($uri), @args;
-    my $res                 = $self->execute_req( $req );
-    $res->request( $req );
-    return $res;
+    return $self->execute_request( $req );
 }
 
 sub normalize_uri

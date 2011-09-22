@@ -25,30 +25,39 @@ my $app = sub
     return [ $code, [ 'Content-Type' => 'text/plain' ], [ $output ] ];
 };
 
-my $agent = Plack::Test::Agent->new( app => $app );
-my $res   = $agent->get( '/?have=foo;want=foo' );
-ok $res->is_success, 'Request should succeed when values match';
-is $res->decoded_content, 'ok', '... with descriptive success message';
+my $bare_agent   = Plack::Test::Agent->new( app    => $app );
+my $server_agent = Plack::Test::Agent->new( app    => $app,
+                                            server => 'HTTP::Server::PSGI' );
+run_tests_with_agent( $bare_agent );
+run_tests_with_agent( $server_agent );
 
-$res    = $agent->get( '/?have=10;want=20' );
-ok ! $res->is_success, 'Request should fail when values do not match';
-is $res->decoded_content, 'not ok', '... with descriptive error';
+sub run_tests_with_agent
+{
+    my $agent = shift;
+    my $res   = $agent->get( '/?have=foo;want=foo' );
+    ok $res->is_success, 'Request should succeed when values match';
+    is $res->decoded_content, 'ok', '... with descriptive success message';
 
-my $uri = URI->new( '/' );
-$uri->query_form( have => 'cow', want => 'cow', desc => 'Cow Comparison' );
-$res    = $agent->get( $uri );
+    $res    = $agent->get( '/?have=10;want=20' );
+    ok ! $res->is_success, 'Request should fail when values do not match';
+    is $res->decoded_content, 'not ok', '... with descriptive error';
 
-ok $res->is_success, 'Request should succeed when values do';
-is $res->decoded_content, 'ok - Cow Comparison',
-    '... including description when provided';
-is $res->content_type, 'text/plain', '... with plain text content';
-is $res->content_charset, 'US-ASCII', '... in ASCII';
+    my $uri = URI->new( '/' );
+    $uri->query_form( have => 'cow', want => 'cow', desc => 'Cow Comparison' );
+    $res    = $agent->get( $uri );
 
-$res    = $agent->post( '/', [ have => 'cow', want => 'pig', desc => 'æ' ] );
-ok ! $res->is_success, 'Request should fail given different values';
-is $res->decoded_content, "not ok - \x{00E6}",
-    '... including description when provided';
-is $res->content_type, 'text/plain', '... with plain text content';
-is $res->content_charset, 'UTF-8', '... in ASCII';
+    ok $res->is_success, 'Request should succeed when values do';
+    is $res->decoded_content, 'ok - Cow Comparison',
+        '... including description when provided';
+    is $res->content_type, 'text/plain', '... with plain text content';
+    is $res->content_charset, 'US-ASCII', '... in ASCII';
+
+    $res    = $agent->post( '/', [ have => 'cow', want => 'pig', desc => 'æ' ] );
+    ok ! $res->is_success, 'Request should fail given different values';
+    is $res->decoded_content, "not ok - \x{00E6}",
+        '... including description when provided';
+    is $res->content_type, 'text/plain', '... with plain text content';
+    is $res->content_charset, 'UTF-8', '... in ASCII';
+}
 
 done_testing;

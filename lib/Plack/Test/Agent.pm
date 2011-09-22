@@ -6,10 +6,10 @@ use warnings;
 
 use Test::TCP;
 use Plack::Loader;
-use HTTP::Request;
-use HTTP::Response;
 use LWP::UserAgent;
+use HTTP::Response;
 use HTTP::Message::PSGI;
+use HTTP::Request::Common;
 
 use Plack::Util::Accessor qw( app host port server ua );
 
@@ -59,9 +59,18 @@ sub execute_req
 sub get
 {
     my ($self, $uri) = @_;
-    my $req          = HTTP::Request->new( GET => $self->normalize_uri($uri) );
+    my $req          = GET $self->normalize_uri($uri);
     my $res          = $self->execute_req( $req );
 
+    $res->request( $req );
+    return $res;
+}
+
+sub post
+{
+    my ($self, $uri, @args) = @_;
+    my $req                 = POST $self->normalize_uri($uri), @args;
+    my $res                 = $self->execute_req( $req );
     $res->request( $req );
     return $res;
 }

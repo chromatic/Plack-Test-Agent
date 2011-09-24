@@ -6,10 +6,10 @@ use warnings;
 
 use Test::TCP;
 use Plack::Loader;
-use LWP::UserAgent;
 use HTTP::Response;
 use HTTP::Message::PSGI;
 use HTTP::Request::Common;
+use Test::WWW::Mechanize;
 
 use Plack::Util::Accessor qw( app host port server ua );
 
@@ -33,7 +33,7 @@ sub start_server
 {
     my ($self, $server_class) = @_;
 
-    my $ua     = $self->ua ? $self->ua : $self->ua( LWP::UserAgent->new );
+    my $ua     = $self->ua ? $self->ua : $self->ua( $self->get_mech );
     my $server = Test::TCP->new(
         code => sub
         {
@@ -86,6 +86,51 @@ sub normalize_uri
 
     return $normalized;
 }
+
+sub get_mech
+{
+    my $self = shift;
+    return Test::WWW::Mechanize::Bound->new(
+        bound_uri => $self->normalize_uri( '/' )
+    );
+}
+
+package
+   Test::WWW::Mechanize::Bound;
+
+    use parent 'Test::WWW::Mechanize';
+
+    sub new
+    {
+        my ($class, %args) = @_;
+        my $bound_uri      = delete $args{bound_uri};
+        my $self           = $class->SUPER::new( %args );
+        $self->bound_uri( $bound_uri );
+        return $self;
+    }
+
+    sub bound_uri
+    {
+        my ($self, $base_uri) = @_;
+        $self->_elem( bound_uri => $base_uri ) if @_ == 2;
+        return $self->_elem( 'bound_uri' );
+    }
+
+    sub prepare_request
+    {
+        my $self  = shift;
+        my ($req) = @_;
+        my $uri   = $req->uri;
+        my $base  = $self->bound_uri;
+
+        unless ($uri->scheme)
+        {
+            $uri->scheme( $base->scheme );
+            $uri->host( $base->host );
+            $uri->port( $base->port );
+        }
+        return $self->SUPER::prepare_request( @_ );
+    }
 
 1;
 

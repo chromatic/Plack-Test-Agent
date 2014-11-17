@@ -9,6 +9,7 @@ use Plack::Loader;
 use HTTP::Response;
 use HTTP::Message::PSGI;
 use HTTP::Request::Common;
+use Scalar::Util qw( weaken );
 use Test::WWW::Mechanize;
 
 use Plack::Util::Accessor qw( app host port server ua );
@@ -45,7 +46,7 @@ sub start_server
     );
 
     $self->port( $server->port );
-    $self->server( $server );
+    $self->server( weaken $server );
 }
 
 sub execute_request

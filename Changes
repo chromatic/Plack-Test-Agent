@@ -1,0 +1,9 @@
+{{$NEXT}}
+
+* Fixed a circular reference between the agent object and the Test::TCP it
+  creates internally. (Dave Rolsky)
+
+
+1.20111011    2011-10-11
+
+* Initial release

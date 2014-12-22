@@ -25,8 +25,9 @@ my $app = sub
     return [ $code, [ 'Content-Type' => 'text/plain' ], [ $output ] ];
 };
 
-my $mech = Plack::Test::Agent->new( app    => $app,
-                                    server => 'HTTP::Server::PSGI' )->get_mech;
+my $agent = Plack::Test::Agent->new( app    => $app,
+                                     server => 'HTTP::Server::PSGI' );
+my $mech = $agent->get_mech;
 
 $mech->get_ok( '/?have=foo;want=foo',
     'Request should succeed when values match' );

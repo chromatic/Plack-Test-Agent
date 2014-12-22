@@ -33,18 +33,20 @@ sub start_server
 {
     my ($self, $server_class) = @_;
 
-    my $ua     = $self->ua ? $self->ua : $self->ua( $self->get_mech );
+    my $app  = $self->app;
+    my $host = $self->host;
+
     my $server = Test::TCP->new(
         code => sub
         {
             my $port = shift;
-            $self->port( $port );
-            Plack::Loader->auto( port => $port, host => $self->host )
-                         ->run( $self->app );
+            Plack::Loader->auto( port => $port, host => $host )
+                         ->run( $app );
         },
     );
 
     $self->port( $server->port );
+    $self->ua( $self->get_mech ) unless $self->ua;
     $self->server( $server );
 }
 

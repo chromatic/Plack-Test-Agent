@@ -62,11 +62,10 @@ sub execute_request
     return $res;
 }
 
-sub get
-{
-    my ($self, $uri) = @_;
-    my $req          = GET $self->normalize_uri($uri);
-    return $self->execute_request( $req );
+sub get {
+    my ( $self, $uri, @args ) = @_;
+    my $req                   = GET $self->normalize_uri($uri), @args;
+    return $self->execute_request($req);
 }
 
 sub post

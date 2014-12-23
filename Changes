@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+* Allow extra args to pass through in get() method
+
 * Fixed a circular reference between the agent object and the Test::TCP it
   creates internally.
 

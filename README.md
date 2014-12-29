@@ -63,6 +63,8 @@ This method takes a URI and makes a `GET` request against the PSGI application
 with that URI. It returns an [HTTP::Response](https://metacpan.org/pod/HTTP::Response) object representing the results
 of that request.
 
+Any arguments you pass after the URI will be sent to the HTTP request constructor untouched.
+
 ### `post`
 
 This method takes a URI and makes a `POST` request against the PSGI

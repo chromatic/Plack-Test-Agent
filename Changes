@@ -1,10 +1,12 @@
 {{$NEXT}}
 
-* Allow extra args to pass through in get() method
+* Allow extra args to pass through in get() method. (Ran Eilam)
 
 * Fixed a circular reference between the agent object and the Test::TCP it
-  creates internally.
+  creates internally. (Dave Rolsky)
 
+* Use Plack::Loader::load() rather than Plack::Loader::auto() if server arg has
+  been provided. (Olaf Alders)
 
 1.20111011    2011-10-11
 

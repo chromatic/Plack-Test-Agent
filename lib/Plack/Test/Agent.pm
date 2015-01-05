@@ -40,8 +40,10 @@ sub start_server
         code => sub
         {
             my $port = shift;
-            Plack::Loader->auto( port => $port, host => $host )
-                         ->run( $app );
+            my %args = ( host => $host, port => $port );
+            return $server_class
+                ? Plack::Loader->load( $server_class, %args )->run( $app )
+                : Plack::Loader->auto( %args )->run( $app );
         },
     );
 

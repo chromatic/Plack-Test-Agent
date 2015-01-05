@@ -5,23 +5,32 @@ use warnings;
 
 use Test::More;
 use Plack::Test::Agent;
+use HTTP::Server::Simple;
 
 my $app = sub
 {
     return [ 200, [ 'Content-Type' => 'text/plain' ], [ 'Hello World' ] ];
 };
 
-my $agent = Plack::Test::Agent->new(
-    app    => $app,
-    server => 'HTTP::Server::PSGI',
+my %server = (
+    'HTTP::Server::PSGI'   => 'HTTP::Server::PSGI',
+    'HTTP::Server::Simple' => undef,
 );
 
-my $res = $agent->get( 'http://localhost/hello' );
+foreach my $server_class ( keys %server ) {
+    my $agent = Plack::Test::Agent->new(
+        app    => $app,
+        server => $server_class,
+    );
 
-is $res->content, 'Hello World';
-is $res->content_type, 'text/plain';
-is $res->code, 200;
-is $res->header( 'Server' ), 'HTTP::Server::PSGI',
-    '... should use server when given server';
+    my $res = $agent->get( 'http://localhost/hello' );
+
+    is $res->content,      'Hello World';
+    is $res->content_type, 'text/plain';
+    is $res->code,         200;
+    is $res->header( 'Server' ), $server{$server_class},
+        '... should use server when given server';
+}
+
 
 done_testing;

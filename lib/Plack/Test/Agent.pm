@@ -33,18 +33,22 @@ sub start_server
 {
     my ($self, $server_class) = @_;
 
-    my $ua     = $self->ua ? $self->ua : $self->ua( $self->get_mech );
+    my $app  = $self->app;
+    my $host = $self->host;
+
     my $server = Test::TCP->new(
         code => sub
         {
             my $port = shift;
-            $self->port( $port );
-            Plack::Loader->auto( port => $port, host => $self->host )
-                         ->run( $self->app );
+            my %args = ( host => $host, port => $port );
+            return $server_class
+                ? Plack::Loader->load( $server_class, %args )->run( $app )
+                : Plack::Loader->auto( %args )->run( $app );
         },
     );
 
     $self->port( $server->port );
+    $self->ua( $self->get_mech ) unless $self->ua;
     $self->server( $server );
 }
 
@@ -60,11 +64,10 @@ sub execute_request
     return $res;
 }
 
-sub get
-{
-    my ($self, $uri) = @_;
-    my $req          = GET $self->normalize_uri($uri);
-    return $self->execute_request( $req );
+sub get {
+    my ( $self, $uri, @args ) = @_;
+    my $req                   = GET $self->normalize_uri($uri), @args;
+    return $self->execute_request($req);
 }
 
 sub post
